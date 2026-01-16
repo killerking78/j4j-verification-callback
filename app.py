@@ -8,7 +8,7 @@ CLIENT_ID = os.getenv("CLIENT_ID")
 CLIENT_SECRET = os.getenv("CLIENT_SECRET")
 REDIRECT_URI = os.getenv("REDIRECT_URI")
 
-USERS_FILE = "users.json"  # JSON is better for structured data
+USERS_FILE = "users.txt"  # txt is better for structured data
 
 def load_users():
     try:
