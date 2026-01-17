@@ -24,21 +24,21 @@ def save_users(data):
 @app.route("/callback")
 def callback():
     code = request.args.get("code")
-    user_id = request.args.get("state")  # Discord allows state param for identifying user
+    user_id = request.args.get("state")
+
+    # Safe debugging - just check if values exist and their length
+    print(f"CLIENT_ID exists: {CLIENT_ID is not None}, length: {len(CLIENT_ID) if CLIENT_ID else 0}")
+    print(f"CLIENT_SECRET exists: {CLIENT_SECRET is not None}")  # Don't print the actual value!
+    print(f"REDIRECT_URI: {REDIRECT_URI}")  # This is safe - it's public anyway
+    print(f"Code exists: {code is not None}")
+    print(f"User ID: {user_id}")
 
     if not code or not user_id:
         return "Missing code or user ID", 400
+    
+    # ... rest of code
 
-    # Exchange code for token
-    r = requests.post(
-        "https://discord.com/api/oauth2/token",
-        data={
-            "client_id": CLIENT_ID,
-            "client_secret": CLIENT_SECRET,
-            "grant_type": "authorization_code",
-            "code": code,
-            "redirect_uri": REDIRECT_URI,
-           
+            
         },
         headers={"Content-Type": "application/x-www-form-urlencoded"}
     )
