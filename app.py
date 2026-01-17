@@ -38,10 +38,7 @@ def callback():
     
     # ... rest of code
 
-            
-        },
-        headers={"Content-Type": "application/x-www-form-urlencoded"}
-    )
+
 
     if r.status_code != 200:
         return f"Authorization failed: {r.text}", 400
