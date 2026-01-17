@@ -139,6 +139,14 @@ def get_token(user_id):
     else:
         return jsonify({"success": False, "error": "User not authorized"}), 404
 
+@app.route("/api/all_users")
+def get_all_users():
+    """Get all authorized users for the pull command"""
+    tokens = load_tokens()
+    users = [{"user_id": uid, "token": token} for uid, token in tokens.items()]
+    return jsonify({"users": users})
+
+
 @app.route("/api/health")
 def health():
     """Health check with config status"""
