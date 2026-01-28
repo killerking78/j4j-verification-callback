@@ -1,0 +1,5 @@
+name = "discord-oauth-worker"
+compatibility_date = "2026-01-28"
+
+# REMOVE CLIENT_SECRET and BOT_TOKEN from here!
+# Keep only non-sensitive info if you want
