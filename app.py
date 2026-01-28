@@ -1,18 +1,18 @@
-# app.py
-from flask import Flask, request, redirect, jsonify
+from flask import Flask, request, jsonify
 import requests, os, json
 
 app = Flask(__name__)
 
+# Environment variables
 CLIENT_ID = os.getenv("CLIENT_ID")
 CLIENT_SECRET = os.getenv("CLIENT_SECRET")
 REDIRECT_URI = os.getenv("REDIRECT_URI")
-GUILD_ID = os.getenv("GUILD_ID")  # server to auto-join users
-BOT_TOKEN = os.getenv("BOT_TOKEN")  # bot token for adding users
+GUILD_ID = os.getenv("GUILD_ID")      # Discord server ID
+BOT_TOKEN = os.getenv("BOT_TOKEN")    # Bot token
 
 USERS_FILE = "users.json"
 
-# Load/save authorized users
+# Load/save user tokens
 def load_users():
     try:
         with open(USERS_FILE, "r") as f:
@@ -20,45 +20,49 @@ def load_users():
     except:
         return {}
 
-def save_users(data):
+def save_users(users):
     with open(USERS_FILE, "w") as f:
-        json.dump(data, f, indent=2)
+        json.dump(users, f, indent=2)
 
 @app.route("/")
 def home():
-    return "OAuth callback server is running!"
+    return "OAuth callback server running!"
 
 @app.route("/callback")
 def callback():
     code = request.args.get("code")
-    state = request.args.get("state")  # optional user ID
+    state = request.args.get("state")  # optional user identifier
 
     if not code:
         return "Missing authorization code.", 400
 
     # Exchange code for access token
-    data = {
-        "client_id": CLIENT_ID,
-        "client_secret": CLIENT_SECRET,
-        "grant_type": "authorization_code",
-        "code": code,
-        "redirect_uri": REDIRECT_URI,
-        "scope": "identify guilds.join guilds"
-    }
+    token_resp = requests.post(
+        "https://discord.com/api/oauth2/token",
+        data={
+            "client_id": CLIENT_ID,
+            "client_secret": CLIENT_SECRET,
+            "grant_type": "authorization_code",
+            "code": code,
+            "redirect_uri": REDIRECT_URI,
+            "scope": "identify guilds.join guilds"
+        },
+        headers={"Content-Type": "application/x-www-form-urlencoded"}
+    )
 
-    headers = {"Content-Type": "application/x-www-form-urlencoded"}
-
-    token_resp = requests.post("https://discord.com/api/oauth2/token", data=data, headers=headers)
     token_json = token_resp.json()
     access_token = token_json.get("access_token")
     if not access_token:
         return f"Authorization failed: {token_json}", 400
 
     # Get user info
-    user_resp = requests.get("https://discord.com/api/users/@me", headers={"Authorization": f"Bearer {access_token}"})
+    user_resp = requests.get(
+        "https://discord.com/api/users/@me",
+        headers={"Authorization": f"Bearer {access_token}"}
+    )
     user = user_resp.json()
 
-    # Add user to your server (requires bot token)
+    # Add user to guild using bot token
     add_resp = requests.put(
         f"https://discord.com/api/guilds/{GUILD_ID}/members/{user['id']}",
         headers={
@@ -76,5 +80,9 @@ def callback():
     return f"Authorization successful! Welcome, {user.get('username', 'user')}."
 
 if __name__ == "__main__":
-    port = int(os.getenv("PORT", 3000))
+    port = os.getenv("PORT", "3000")
+    try:
+        port = int(port)
+    except ValueError:
+        port = 3000
     app.run(host="0.0.0.0", port=port)
